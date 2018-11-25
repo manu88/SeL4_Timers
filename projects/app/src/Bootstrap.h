@@ -22,6 +22,8 @@
 #include <simple/simple.h>
 #include <sel4platsupport/timer.h>
 #include <sel4platsupport/io.h>
+
+#include <platsupport/time_manager.h>
 //#include "TimerWheel/TimersWheel.h"
 
 typedef struct
@@ -37,6 +39,7 @@ typedef struct
 
     seL4_timer_t   timer;
     ps_io_ops_t ops;
+    time_manager_t tm;
 
 /*
     vka_object_t   ntfn_object;
