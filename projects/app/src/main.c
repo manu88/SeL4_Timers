@@ -3,6 +3,8 @@
 #include <platsupport/local_time_manager.h>
 #include "Bootstrap.h"
 
+#include "Timer.h"
+
 #define MAX_TIMERS 64
 static KernelTaskContext context = {0};
 
@@ -18,44 +20,47 @@ static uint64_t getTime()
 	return t;
 }
 
-
-static void init_timers()
+/*
+static void TimerInit(KernelTaskContext* ctx)
 {
-	int err = vka_alloc_notification(&context.vka, &timer_aep);
+	int err = vka_alloc_notification(&ctx->vka, &timer_aep);
 	assert(err == 0);
 
 
-	err = sel4platsupport_new_io_ops(context.vspace, context.vka, &context.ops);
+	err = sel4platsupport_new_io_ops(ctx->vspace, ctx->vka, &ctx->ops);
         assert(err == 0);
 
 
-	err = sel4platsupport_new_arch_ops(&context.ops, &context.simple, &context.vka);
+	err = sel4platsupport_new_arch_ops(&ctx->ops, &ctx->simple, &ctx->vka);
         assert(err == 0);
 
 
 	cspacepath_t notification_path;
 
-        vka_cspace_make_path( &context.vka, timer_aep.cptr, &notification_path);
+        vka_cspace_make_path( &ctx->vka, timer_aep.cptr, &notification_path);
 
-	err = sel4platsupport_init_default_timer_ops(&context.vka, &context.vspace, &context.simple, context.ops,
-                                                   notification_path.capPtr, &context.timer);
+	err = sel4platsupport_init_default_timer_ops(&ctx->vka, &ctx->vspace, &ctx->simple, ctx->ops,
+                                                   notification_path.capPtr, &ctx->timer);
 
 
 	assert(err == 0);
 
 }
-
+*/
 static int onPeriodic1(uintptr_t token)
 {
 	printf("on Periodic1 %lx\n" , token);
+
+	return 0;
 }
 
 static int onPeriodic2(uintptr_t token)
 {
         printf("on Periodic2 %lx\n" , token);
+	return 1;
 }
 
-
+/*
 static int TimerAllocAndRegister(time_manager_t *tm , uint64_t period_ns, uint64_t start, uint32_t id, timeout_cb_fn_t callback, uintptr_t token)
 {
 	int err = tm_alloc_id_at(tm , id);
@@ -65,7 +70,7 @@ static int TimerAllocAndRegister(time_manager_t *tm , uint64_t period_ns, uint64
 	}
 	return err;
 } 
-
+*/
 static void test_interrupt()
 {
 	int err = 0;
@@ -105,11 +110,19 @@ int main(void)
     int err = bootstrapSystem(&context);
     assert(err == 0);
 
-    init_timers();
+
+    err = vka_alloc_notification(&context.vka, &timer_aep);
+    assert(err == 0);
+
+    cspacepath_t notification_path;
+
+    vka_cspace_make_path( &context.vka, timer_aep.cptr, &notification_path);
+
+    TimerInit(&context , timer_aep.cptr);
 
 
-    err = tm_init(&context.tm ,&context.timer.ltimer ,&context.ops , MAX_TIMERS);
-    assert(err == 0); 
+//    err = tm_init(&context.tm ,&context.timer.ltimer ,&context.ops , MAX_TIMERS);
+//    assert(err == 0); 
 
 
 
